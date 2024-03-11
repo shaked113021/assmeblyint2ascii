@@ -1,0 +1,10 @@
+all: main.exe
+
+main.obj: main.asm
+        masm main;
+
+int2asci.obj: int2asci.asm
+        masm int2asci;
+
+main.exe: main.obj int2asci.obj
+        link main+int2asci;
