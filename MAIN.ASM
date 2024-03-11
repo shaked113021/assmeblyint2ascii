@@ -2,16 +2,18 @@
 
 EXTRN INT2ASCII:PROC
 EXTRN ASCII2INT:PROC
+EXTRN READLN:PROC
 
 .STACK 100H
 
 .DATA
-NUM DB 0
 ENDLINE DB 0DH, 0AH, '$'
-MSG DB 'Key Recieved: $'
 BUFF DB 5 DUP (1)
-NUMST DB '100$'
-
+BUFF2 DB 50 DUP(?)
+MSG1 DB 'Enter first num: $'
+MSG2 DB 'Enter second num: $'
+MSGRES DB 'Result is: $'
+NUM1 DB ?
 
 .CODE
 ASSUME DS:@DATA
@@ -21,38 +23,42 @@ ASSUME DS:@DATA
         MOV AX, @DATA
         MOV DS, AX
 
-        ; call INT2ASCII with dx = buff and al=num
-       ; LEA DX, BUFF
-       ; MOV AL, NUM
-       ; CALL INT2ASCII
+       ; Read num1
+       LEA DX, MSG1
+       MOV AH, 9H
+       INT 21H
 
-        ; print num string
-       ; MOV AH, 9H
-       ;  LEA DX, BUFF
-       ; INT 21H
+       LEA DX, BUFF2
+       CALL READLN
+       ; convert buff2 to int
+       CALL ASCII2INT
+       MOV NUM1, AL
 
-        ; print endline
-       ; MOV AH, 9H
-       ; LEA DX, ENDLINE
-       ; INT 21H
+       ; read num2
+       LEA DX, MSG2
+       MOV AH, 9H
+       INT 21H
 
-       ; CONVERTING NUMST TO INT
-       LEA DX, NUMST
+       LEA DX, BUFF2
+       CALL READLN
        CALL ASCII2INT
 
-       ; converting buff to string
+       ; calculate num1 + num2
+       MOV BL, NUM1
+       ADD AL, BL
+
+       ; RESULT convert to ascii
        LEA DX, BUFF
        CALL INT2ASCII
 
-       ; printing buff
+       ; print result
+       LEA DX, MSGRES
        MOV AH, 9H
        INT 21H
 
-       LEA DX, ENDLINE
+       LEA DX, BUFF
        MOV AH, 9H
        INT 21H
-
-
 
         ; Exit program
         MOV AH, 4CH
