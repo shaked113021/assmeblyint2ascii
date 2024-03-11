@@ -6,5 +6,8 @@ main.obj: main.asm
 int2asci.obj: int2asci.asm
         masm int2asci;
 
-main.exe: main.obj int2asci.obj
-        link main+int2asci;
+asci2int.obj: asci2int.asm
+        masm asci2int;
+
+main.exe: main.obj int2asci.obj asci2int.obj
+        link main+int2asci+asci2int;

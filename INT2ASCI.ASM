@@ -11,92 +11,54 @@ PUBLIC INT2ASCII
 ; AL - number to convert
 ; saves register state
 INT2ASCII PROC
-        LOCAL isNeg: BYTE
-        PUSH DX
+
         PUSH AX
-        PUSH CX
-        PUSH DI
         PUSH BX
+        PUSH DI
 
-        MOV BL, 0H
-        MOV isNeg, BL
-
-        ; Clear buffer
+        ; Zero out array
         XOR DI, DI
         MOV BX, DX
 CLEAR_LOOP:
-
         MOV BYTE PTR [BX+DI], 0
         INC DI
-        CMP DI, 5; SIZE OF BUFFER
         JL CLEAR_LOOP
 
-        MOV BL, '$' ; stop flag
-        PUSH BX        
-
-        ; Check if number is negative
-        XOR CL, CL
+        ; Initialize index for writing into the array
+        XOR DI, DI ; zero out index
+        MOV BL, '$'
+        PUSH BX
+        
         CMP AL, 0
-        JNS CONVERT_LOOP
-        ; if negative, make al 2s complement and set isNeg to true
-        DEC AL
-        NOT AL
-        MOV BL, 1
-        MOV isNeg, BL
+        JNS EXTRACT_DIGIT_LOOP
+        ; if negative, change sign and add minus to output string
+        NEG AL
+        MOV BX, DX
+        MOV BYTE PTR [BX], '-'
+        INC DI
 
-CONVERT_LOOP:
-        CMP AL, 10
-        JL LOOP_END_INNER
-        SUB AL, 10
-        INC CL
-        JMP CONVERT_LOOP
-
-
-LOOP_END_INNER:
-        ; push digit to stack
-        MOV BL, AL
-        ADD BL, '0'
+; Push digits one by one to the stack
+EXTRACT_DIGIT_LOOP:
+        XOR AH, AH ; make sure we only divide al
+        MOV BL, 10
+        DIV BL
+        MOV BL, AH
+        ADD BL, '0' ; convert to ascii
         PUSH BX
+        CMP AL, 0
+        JNE EXTRACT_DIGIT_LOOP
 
-        CMP CL, 10
-        JL LOOP_END_OUTER
-        MOV AL, CL ; set next exp to current exp
-        XOR CL, CL ; zero next_exp counter
-        JMP CONVERT_LOOP
-
-LOOP_END_OUTER:
-        ; push last digit to stack
-        CMP CL, 0
-        JE LAST_DIGIT_ZERO
-        MOV BL, CL
-        ADD BL, '0'
-        PUSH BX
-
-LAST_DIGIT_ZERO:
-        ; ADD MINUS SIGN if needed
-        MOV BL, isNeg
-        CMP BL, 0
-        JE POP_DIGITS_INIT
-        ; if number was negative, add minus sign
-        MOV BL, '-' ; add minus sign
-        PUSH BX
-
-
-POP_DIGITS_INIT:
-        XOR DI, DI; zero out index register
         MOV BX, DX
 POP_DIGITS_LOOP:
-        POP AX
-        MOV BYTE PTR [BX+DI], AL ; set char to digit
+        POP AX        
+        MOV BYTE PTR [BX+DI], AL
         INC DI
         CMP AL, '$'
         JNE POP_DIGITS_LOOP
 
-        POP BX
         POP DI
-        POP CX
+        POP BX
         POP AX
-        POP DX
 
         RET
 
