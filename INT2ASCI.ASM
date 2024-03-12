@@ -22,6 +22,7 @@ INT2ASCII PROC
 CLEAR_LOOP:
         MOV BYTE PTR [BX+DI], 0
         INC DI
+        CMP DI, 5
         JL CLEAR_LOOP
 
         ; Initialize index for writing into the array
